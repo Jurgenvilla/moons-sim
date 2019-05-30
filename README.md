@@ -15,15 +15,23 @@ pip install PyAstronomy numpy astropy sys scipy matplotlib math warnings
 
 ### Installing
 
-A step by step series of examples that tell you how to get a development env running
+Download this package. This includes all the necessary files and subdirectories needed to run the simulator:
 
 ```
-Give the example
+moons_sim.py 
+Inst_setup/ which includes all the throughput information for Instrument, detectors, and telescope.
+Skymodel/ which inscludes all the ESO sky model templates for different airmass values at average Paranal conditions.
 ```
 
 ## Running the simulator
 
-The simulator requires input arguments in a specific order:
+The simulator can be run from the command line:
+
+```
+python moons_sim.py arg1 arg2 arg3 ...
+```
+
+Input arguments must be provided in the following specific order:
 
 ```
 1: Template name (and local path)
