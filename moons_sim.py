@@ -9,138 +9,153 @@ import scipy.io as sc
 import math
 import warnings
 
-global DKsec
-global RON
-global gain
-global saturation_level
-global resolution
-global pix_size
-global qe
+def get_input():
+    uservals={}
+    uservals['telescope']='VLT'
+    uservals['instrument']='MOONS'
+    uservals['template']=str(sys.argv[1])
+    uservals['outfits']=str(sys.argv[2])
+    uservals['moons_mode']=str(sys.argv[3])
+    uservals['band']=str(sys.argv[4])
+    uservals['ab']=float(sys.argv[5])
+    uservals['dit']=float(sys.argv[6])
+    uservals['N_dit']=float(sys.argv[7])
+    uservals['seeing']=float(sys.argv[8])
+    uservals['airmass']=str(sys.argv[9])
+    uservals['airmass_fl']=float(sys.argv[9])
+    uservals['atm_dif_ref']=float(sys.argv[10])
+    uservals['sky_residual']=float(sys.argv[11])
+    uservals['sky_template']=sys.argv[12]
+    uservals['telluric']=int(sys.argv[13])
+    uservals['set_line_profile']='NO' # do not change...to be applied later
+    # detailed check for valid inputs to be added here
+    return uservals
 
-print(' ')
-print('MOONS 1D simulator (v1.0)')
-set_line_profile='NO'
-eff_opt=0.20 # Before Detector QE, not used at the moment!
-telescope='VLT'
-Instrument='MOONS'
-print(' ')
-template=str(sys.argv[1])
-outfits=str(sys.argv[2])
-sky_aperture=1.1#float(sys.argv[3])
-moons_mode=str(sys.argv[3])
-band=str(sys.argv[4])
-ab_mag=float(sys.argv[5])
-dit=float(sys.argv[6])
-N_dit=float(sys.argv[7])
-seeing=float(sys.argv[8])
-airmass=str(sys.argv[9])
-airmass_fl=float(sys.argv[9])
-atm_dif_ref=float(sys.argv[10])
-sky_residual=float(sys.argv[11])
-sky_template=sys.argv[12]
-telluric=float(sys.argv[13])
+def setup_moons(uservals):
+    instrumentconfig={}
+    if (uservals['moons_mode'] == "HR"):
+        if ( uservals['band'] == "H" ) :
+            print("Adopting moons mode: ", uservals['moons_mode'], uservals['band'])
+            instrumentconfig['wlr']=[1.521,1.641]
+            instrumentconfig['RON'] = 3.
+            DK = 30.
+            instrumentconfig['gain']=0.5 #ADU/e- for 4RGs consistent with Gianluca's model
+            instrumentconfig['saturation_level']=30000.0 #ADU
+            instrumentconfig['pix_size']=15.0
+            instrumentconfig['spec_sampling']=2.7
+            instrumentconfig['resolution']=19400.00
+            print("Setting wavelength range to ", str(instrumentconfig['wlr']))
+            instrumentconfig['template_wl_norm']=1.630
+            QE_file='Inst_setup/QE_4RG.txt'
+            instrumentconfig['QE_wav'], instrumentconfig['QE_eff']  = np.loadtxt(QE_file, unpack = True)
+        if ( uservals['band'] == "YJ" ) :
+            print("Adopting moons mode: ", uservals['moons_mode'], uservals['band'])
+            instrumentconfig['wlr']=[0.934,1.350]
+            instrumentconfig['RON'] = 3.
+            DK = 30.
+            instrumentconfig['gain']=0.5 #ADU/e- for 4RGs consistent with Gianluca's model
+            instrumentconfig['saturation_level']=30000.0 #ADU
+            instrumentconfig['pix_size']=15.0
+            instrumentconfig['spec_sampling']=2.7
+            instrumentconfig['resolution']=4000.00
+            print("Setting wavelength range to ", str(instrumentconfig['wlr']))
+            instrumentconfig['template_wl_norm']=1.22
+            QE_file='Inst_setup/QE_4RG.txt'
+            instrumentconfig['QE_wav'], instrumentconfig['QE_eff']  = np.loadtxt(QE_file, unpack = True)
+        if ( uservals['band'] == "RI" ) :
+            print("Adopting moons mode: ", uservals['moons_mode'], uservals['band'])
+            instrumentconfig['wlr']=[0.765,0.898]
+            DK = 2.
+            instrumentconfig['gain']=0.6 #ADU/e- for LBNL consistent with Gianluca's model
+            instrumentconfig['saturation_level']=58000.0 #ADU
+            instrumentconfig['pix_size']=15.0
+            instrumentconfig['spec_sampling']=2.7
+            instrumentconfig['resolution']=9400.00
+            print("Setting wavelength range to ", str(instrumentconfig['wlr']))
+            instrumentconfig['template_wl_norm']=0.797
+            #setting detector_model_RI to 'LBNL':
+            QE_file='Inst_setup/QE_LBNL.txt'
+            instrumentconfig['QE_wav'], instrumentconfig['QE_eff']  = np.loadtxt(QE_file, unpack = True)
+            instrumentconfig['RON']=3.0
+    if (uservals['moons_mode'] == "LR"):
+        if ( uservals['band'] == "H" ) :
+            print("Adopting moons mode: ", uservals['moons_mode'], uservals['band'])
+            instrumentconfig['wlr']=[1.452,1.800]
+            instrumentconfig['RON'] = 3.
+            DK = 30.
+            instrumentconfig['gain']=0.5 #ADU/e- for 4RGs consistent with Gianluca's model
+            instrumentconfig['saturation_level']=30000.0 #ADU
+            instrumentconfig['pix_size']=15.0
+            instrumentconfig['spec_sampling']=2.7
+            instrumentconfig['resolution']=6400.00
+            print("Setting wavelength range to ", str(instrumentconfig['wlr']))
+            instrumentconfig['template_wl_norm']=1.63
+            QE_file='Inst_setup/QE_4RG.txt'
+            instrumentconfig['QE_wav'], instrumentconfig['QE_eff']  = np.loadtxt(QE_file, unpack = True)
+        if ( uservals['band'] == "YJ" ) :
+            print("Adopting moons mode: ", uservals['moons_mode'], uservals['band'])
+            instrumentconfig['wlr']=[0.934,1.350]
+            instrumentconfig['RON'] = 3.
+            DK = 30.
+            instrumentconfig['gain']=0.5 #ADU/e- for 4RGs consistent with Gianluca's model
+            instrumentconfig['saturation_level']=30000.0 #ADU
+            instrumentconfig['pix_size']=15.0
+            instrumentconfig['spec_sampling']=2.7
+            instrumentconfig['resolution']=4500.00
+            print("Setting wavelength range to ", str(instrumentconfig['wlr']))
+            instrumentconfig['template_wl_norm']=1.22
+            QE_file='Inst_setup/QE_4RG.txt'
+            instrumentconfig['QE_wav'], instrumentconfig['QE_eff']  = np.loadtxt(QE_file, unpack = True)
+        if ( uservals['band'] == "RI" ) :
+            print("Adopting moons mode: ", uservals['moons_mode'], uservals['band'])
+            instrumentconfig['wlr']=[0.647,0.934]
+            instrumentconfig['pix_size']=15.0
+            instrumentconfig['spec_sampling']=2.7
+            instrumentconfig['resolution']=5400.00
+            DK = 2.
+            instrumentconfig['RON']=3.
+            instrumentconfig['saturation_level']=58000.0 #ADU
+            instrumentconfig['gain']=0.6 #ADU/e- for LBNL consistent with Gianluca's model
+            print("Setting wavelength range to ", str(instrumentconfig['wlr']))
+            instrumentconfig['template_wl_norm']=0.797
+            #setting detector_model_RI to 'LBNL':
+            QE_file='Inst_setup/QE_LBNL.txt'
+            instrumentconfig['QE_wav'], instrumentconfig['QE_eff']  = np.loadtxt(QE_file, unpack = True)
+    instrumentconfig['DKsec'] = DK/3600.
+    instrumentconfig['sky_aperture']=1.1
+    print('')
+    return instrumentconfig
 
-if (moons_mode == "HR"):
-    if ( band == "H" ) :
-        print("Adopting moons mode: ", moons_mode, band)
-        wlr=[1.521,1.641]
-        ab = float(ab_mag)# + 0.04*1.2
-        RON = 3.
-        DK = 30.
-        gain=0.5 #ADU/e- for 4RGs consistent with Gianluca's model
-        saturation_level=30000.0 #ADU
-        pix_size=15.0
-        spec_sampling=2.7
-        resolution=19400.00
-        print("Setting wavelength range to ", str(wlr))
-        template_wl_norm=1.630
-        QE_file='Inst_setup/QE_4RG.txt'
-        QE_wav, QE_eff  = np.loadtxt(QE_file, unpack = True)
-    if ( band == "YJ" ) :
-        print("Adopting moons mode: ", moons_mode, band)
-        wlr=[0.934,1.350]
-        ab=float(ab_mag) #+0.05*1.2
-        RON = 3.
-        DK = 30.
-        gain=0.5 #ADU/e- for 4RGs consistent with Gianluca's model
-        saturation_level=30000.0 #ADU
-        pix_size=15.0
-        spec_sampling=2.7
-        resolution=4000.00
-        print("Setting wavelength range to ", str(wlr))
-        template_wl_norm=1.22
-        QE_file='Inst_setup/QE_4RG.txt'
-        QE_wav, QE_eff  = np.loadtxt(QE_file, unpack = True)
-    if ( band == "RI" ) :
-        print("Adopting moons mode: ", moons_mode, band)
-        wlr=[0.765,0.898]
-        ab = float(ab_mag) # + 0.06 * 1.2
-        DK = 2.
-        gain=0.6 #ADU/e- for LBNL consistent with Gianluca's model
-        saturation_level=58000.0 #ADU
-        pix_size=15.0
-        spec_sampling=2.7
-        resolution=9400.00
-        print("Setting wavelength range to ", str(wlr))
-        template_wl_norm=0.797
-        #setting detector_model_RI to 'LBNL':
-        QE_file='Inst_setup/QE_LBNL.txt'
-        QE_wav, QE_eff  = np.loadtxt(QE_file, unpack = True)
-        RON=3.0
-if (moons_mode == "LR"):
-    if ( band == "H" ) :
-        print("Adopting moons mode: ", moons_mode, band)
-        wlr=[1.452,1.800]
-        ab=float(ab_mag) #+0.04*1.2
-        RON = 3.
-        DK = 30.
-        gain=0.5 #ADU/e- for 4RGs consistent with Gianluca's model
-        saturation_level=30000.0 #ADU
-        pix_size=15.0
-        spec_sampling=2.7
-        resolution=6400.00
-        print("Setting wavelength range to ", str(wlr))
-        template_wl_norm=1.63
-        QE_file='Inst_setup/QE_4RG.txt'
-        QE_wav, QE_eff  = np.loadtxt(QE_file, unpack = True)
-    if ( band == "YJ" ) :
-        print("Adopting moons mode: ", moons_mode, band)
-        wlr=[0.934,1.350]
-        ab=float(ab_mag) #+0.05*1.2
-        RON = 3.
-        DK = 30.
-        gain=0.5 #ADU/e- for 4RGs consistent with Gianluca's model
-        saturation_level=30000.0 #ADU
-        pix_size=15.0
-        spec_sampling=2.7
-        resolution=4500.00
-        print("Setting wavelength range to ", str(wlr))
-        template_wl_norm=1.22
-        QE_file='Inst_setup/QE_4RG.txt'
-        QE_wav, QE_eff  = np.loadtxt(QE_file, unpack = True)
-    if ( band == "RI" ) :
-        print("Adopting moons mode: ", moons_mode, band)
-        wlr=[0.647,0.934]
-        ab = float(ab_mag) #+ 0.06 * 1.2
-        pix_size=15.0
-        spec_sampling=2.7
-        resolution=5400.00
-        DK = 2.
-        RON=3.
-        saturation_level=58000.0 #ADU
-        gain=0.6 #ADU/e- for LBNL consistent with Gianluca's model
-        print("Setting wavelength range to ", str(wlr))
-        template_wl_norm=0.797
-        #setting detector_model_RI to 'LBNL':
-        QE_file='Inst_setup/QE_LBNL.txt'
-        QE_wav, QE_eff  = np.loadtxt(QE_file, unpack = True)
-DKsec = DK/3600.
-w_range=wlr
-#print('Setting wavelength range: ',w_range)
-print(' ')
+def set_telescope(uservals):
+    telescopeconfig={}
+    if (uservals['telescope']=='ELT'):
+        telescopeconfig['t_aperture']=39.0
+    if (uservals['telescope']=='VLT'):
+        telescopeconfig['t_aperture']=8.1
+    return telescopeconfig
 
-def get_template(template_name):
+def set_detector(telescopeconfig,uservals,instrumentconfig):
+    #equivalent pixel sizes in arcsec
+    detectorconfig={}
+    xanpix=0.072*(instrumentconfig['pix_size']/15.0)*(1.1/1.0)*(39.0/telescopeconfig['t_aperture'])
+    yanpix=0.072*(instrumentconfig['pix_size']/15.0)*(1.1/1.0)*(39.0/telescopeconfig['t_aperture'])
+    detectorconfig['ypix_fwhm']=instrumentconfig['sky_aperture']/yanpix #math.pi/4.0*sky_aperture*sky_aperture/(xanpix*yanpix)
+    print(' ')
+    print('Spectral sampling for current configuration: ',str(round(instrumentconfig['spec_sampling'],1)))
+    print(' ')
+    print('Spectral resolving power for current configuration: ',str(round(instrumentconfig['resolution'],1)))
+    print(' ')
+    detectorconfig['disp']=(instrumentconfig['wlr'][1]+instrumentconfig['wlr'][0])/2.0*1.0e4/instrumentconfig['resolution']/instrumentconfig['spec_sampling']
+    detectorconfig['npix']=int(1.0e4*(instrumentconfig['wlr'][1]-instrumentconfig['wlr'][0])/detectorconfig['disp']) # Total number of pixels by fixing spectral range and sampling requirements in current baseline design
+    print('Spectral dispersion for current configuration: ',str(round(detectorconfig['disp'],1)))
+    print(' ')
+    return detectorconfig
+
+def get_template(uservals):
+    template_name=uservals['template']
     try:
+        print(' ')
+        print("Reading FITS template spectrum: %s " %template_name)
         fits.getdata(str(template_name))
     except FileNotFoundError:
         print("FITS file not found or not valid input file")
@@ -177,37 +192,6 @@ def get_template(template_name):
         exit()
     return template_data
 
-def set_number_pixels_y(t_aperture,sky_aperture):
-    #equivalent pixel sizes in arcsec
-    xanpix=0.072*(pix_size/15.0)*(1.1/1.0)*(39.0/t_aperture)
-    yanpix=0.072*(pix_size/15.0)*(1.1/1.0)*(39.0/t_aperture)
-    pix_fwhm=sky_aperture/yanpix #math.pi/4.0*sky_aperture*sky_aperture/(xanpix*yanpix)
-    #print(pix_fwhm)
-    return pix_fwhm
-
-def set_number_pixels_x(resolution,spec_sampling,w_range):
-    print(' ')
-    print('Spectral sampling for current configuration: ',str(round(spec_sampling,1)))
-    print(' ')
-    print('Spectral resolving power for current configuration: ',str(round(resolution,1)))
-    print(' ')
-    disp=(w_range[1]+w_range[0])/2.0*1.0e4/resolution/spec_sampling
-    npix=int(1.0e4*(w_range[1]-w_range[0])/disp) # Total number of pixels by fixing spectral range and sampling requirements in current baseline design
-    print('Total number of pixels in the dispersion direction for current configuration: ',str(round(npix,1)))
-    print(' ')
-    return npix
-
-def get_disp(resolution,spec_sampling,w_range):
-    disp=(w_range[1]+w_range[0])/2.0*1.0e4/resolution/spec_sampling
-    return disp
-
-def set_telescope(telescope):
-    if (telescope=='ELT'):
-        aperture=39.0
-    if (telescope=='VLT'):
-        aperture=8.1
-    return aperture
-
 def get_diffraction(Lambda,airmass,atm_ref_wav):
     Lambda1=0.5
     Lambda2=1.9
@@ -231,20 +215,20 @@ def get_diffraction(Lambda,airmass,atm_ref_wav):
     DR=np.tan(ZD)*(N0_1-N_1)*206264.8
     return DR
 
-def create_fits(sim_spectrum, outfits,template_data,gain):
+def create_fits(sim_spectrum, uservals,template_data,instrumentconfig): #sim_spectrum, outfits,template_data,gain):
     with warnings.catch_warnings():
         warnings.simplefilter('ignore')
         hdu = fits.PrimaryHDU()
-        hdu.data=sim_spectrum['flux']*gain
+        hdu.data=sim_spectrum['flux']*instrumentconfig['gain']
         hdu.header['CDELT1']=sim_spectrum['cdelt']
         hdu.header['CRVAL1']=sim_spectrum['crval']
         hdu.header['TUNIT1']='Angstroms'
         hdu.header['MTYPE']=template_data['header']['MTYPE']
         hdu.header['MNAME']=template_data['header']['MNAME']
         hdu.header['TUNIT2']='ADU'
-        hdu.header['GAIN']=gain
+        hdu.header['GAIN']=instrumentconfig['gain']
         hdu.header.comments['GAIN']='ADU/e-'
-        hdu.writeto(outfits,clobber=True)
+        hdu.writeto(uservals['outfits'],clobber=True)
 
 def get_line_profile(filename, wave_spec, flux_spec, disp):
     profile_angs, profile_line  = np.loadtxt(filename, unpack=True)
@@ -254,7 +238,7 @@ def get_line_profile(filename, wave_spec, flux_spec, disp):
     flux_conv=np.convolve(flux_spec,k_x_sim,mode="same") #Convolve with line profile kernel, resampled to simulation dispersion steps
     return flux_conv
 
-def get_sky_model(sky_template):
+def get_sky_model(sky_template,airmass_fl):
     if sky_template=='eso_skycalc':
         print('Using ESO SkyCalc template for Mean Sky conditions')
         available_airmass=np.array([1.0,1.2,1.4,1.6,1.8,2.0])
@@ -319,31 +303,34 @@ def get_sky_model(sky_template):
 
 def get_efficiency(outputwl,min_wl,max_wl):
     # Add Telescope transmission
-    telescope_file='Inst_setup/telescope_eff.txt'
+    if (uservals['telescope']=='VLT'):
+        telescope_file='Inst_setup/telescope_eff.txt'
+
     telescope_wav_micron, telescope_eff  = np.loadtxt(telescope_file, unpack = True)
     telescope_wav=telescope_wav_micron*1.0e04
     # Resample telescope transmission on wlgrid
     tel_eff = np.interp(outputwl,telescope_wav,telescope_eff)
     # Add transmission curve from overall instrument+telescope efficiency
     #data_dir='data_dir/Inst_setup'
-    trans_file='Inst_setup/throughput.sav'
-    efficiency=sc.readsav(trans_file,verbose=False)
-    eff_lr0=efficiency.lreff
-    eff_hr0=efficiency.hreff
-    eff_wl0=efficiency.weff*10.0
-    effok = np.where((eff_wl0 > min_wl) & (eff_wl0 < max_wl))[0] #Selecting instrument transmission in Setup
-    eff_lr=eff_lr0[effok]
-    eff_hr=eff_hr0[effok]
-    eff_wl=eff_wl0[effok]
-    # Resample instrument efficiency on wlgrid and detector QE (updated to detector FDR)
-    if (moons_mode == "HR"):
-        eff = np.interp(outputwl,eff_wl,eff_hr)
-        QE_detector=np.interp(outputwl,QE_wav*1.e4,QE_eff)
-        eff = QE_detector/100.0*eff*tel_eff
-    if (moons_mode == "LR"):
-        eff = np.interp(outputwl,eff_wl,eff_lr)
-        QE_detector=np.interp(outputwl,QE_wav*1.e4,QE_eff)
-        eff = QE_detector/100.0*eff*tel_eff
+    if (uservals['instrument']=='MOONS'):
+        trans_file='Inst_setup/throughput.sav'
+        efficiency=sc.readsav(trans_file,verbose=False)
+        eff_lr0=efficiency.lreff
+        eff_hr0=efficiency.hreff
+        eff_wl0=efficiency.weff*10.0
+        effok = np.where((eff_wl0 > min_wl) & (eff_wl0 < max_wl))[0] #Selecting instrument transmission in Setup
+        eff_lr=eff_lr0[effok]
+        eff_hr=eff_hr0[effok]
+        eff_wl=eff_wl0[effok]
+        # Resample instrument efficiency on wlgrid and detector QE (updated to detector FDR)
+        if (uservals['moons_mode'] == "HR"):
+            eff = np.interp(outputwl,eff_wl,eff_hr)
+            QE_detector=np.interp(outputwl,instrumentconfig['QE_wav']*1.e4,instrumentconfig['QE_eff'])
+            eff = QE_detector/100.0*eff*tel_eff
+        if (uservals['moons_mode'] == "LR"):
+            eff = np.interp(outputwl,eff_wl,eff_lr)
+            QE_detector=np.interp(outputwl,instrumentconfig['QE_wav']*1.e4,instrumentconfig['QE_eff'])
+            eff = QE_detector/100.0*eff*tel_eff
     print('Mean total efficiency (Telescope+Instrument+Detector): ',str(round(np.mean(eff),2)))
     print(' ')
     return eff
@@ -359,7 +346,7 @@ def seeing_to_ImageQ(seeing,cen_wav,airmass_fl):
     print(" ")
     return fwhm_iq
 
-def get_saturation(count_level):
+def get_saturation(count_level,saturation_level):
     check_level=np.where(count_level>saturation_level)
     if (np.size(check_level)>0):
         return True
@@ -373,35 +360,34 @@ def get_PeakIntensity(spec,npix_y,DK_perpix):
     peak_intensity=spec2d[central_pix]+DK_perpix
     return peak_intensity
 
-def make_simulation(template_data,resolution,wlr,t_aperture,sky_aperture,template_wl_norm,ab,airmass,npix,Instrument,aper_sampl,dit,eff_opt,seeing,atm_dif_ref):
+def make_simulation(template_data, uservals, detectorconfig, telescopeconfig,instrumentconfig):#template_data,resolution,wlr,t_aperture,sky_aperture,template_wl_norm,ab,airmass,npix,Instrument,aper_sampl,dit,eff_opt,seeing,atm_dif_ref):
 
     ####################################################################
     #Set dispersion axis
-    disp=get_disp(resolution,spec_sampling,w_range)
-    cen_wav=(wlr[1]+wlr[0])/2.0*1.0e3
-    wav_range_length=(wlr[1]-wlr[0])*1.0e3
-    pix_arr=np.arange(0,npix,1)
-    outputwl = wlr[0]*1.0e4+pix_arr*disp
+    cen_wav=(instrumentconfig['wlr'][1]+instrumentconfig['wlr'][0])/2.0*1.0e3
+    wav_range_length=(instrumentconfig['wlr'][1]-instrumentconfig['wlr'][0])*1.0e3
+    pix_arr=np.arange(0,detectorconfig['npix'],1)
+    outputwl = instrumentconfig['wlr'][0]*1.0e4+pix_arr*detectorconfig['disp']
     ####################################################################
 
     ####################################################################
     #obtain Sky spectrum from template (either provided or ESO sky_calc)
-    oh_f=get_sky_model(sky_template)
+    oh_f=get_sky_model(uservals['sky_template'], uservals['airmass_fl'])
     rdwl=oh_f['rdwl']
     rwl0=oh_f['rwl0'] # wavelength of sky model in Angstroms
-    rfn0=oh_f['rfn0']*math.pi*(t_aperture*1.e2/2.0)**2*rdwl #Photons/s/arcsec2 per pixel of the OH grid
+    rfn0=oh_f['rfn0']*math.pi*(telescopeconfig['t_aperture']*1.e2/2.0)**2*rdwl #Photons/s/arcsec2 per pixel of the OH grid
     atmtr0=oh_f['atmtr'] # atmospheric transmission
     atmwl0=oh_f['atmwl']
-    tol = (wlr[1]-wlr[0])*0.05
-    min_wl=(wlr[0]-tol)*1.0e4
-    max_wl=(wlr[1]+tol)*1.0e4
+    tol = (instrumentconfig['wlr'][1]-instrumentconfig['wlr'][0])*0.05
+    min_wl=(instrumentconfig['wlr'][0]-tol)*1.0e4
+    max_wl=(instrumentconfig['wlr'][1]+tol)*1.0e4
     iok_sky = np.where((rwl0 > min_wl) & (rwl0 < max_wl))[0]
     iok_atm = np.where((atmwl0 > min_wl) & (atmwl0 < max_wl))[0]
     rfn = rfn0[iok_sky] # flux of OH spectrum
     rwl = rwl0[iok_sky] # wave of OH spectrum
     atmwl=atmwl0[iok_atm]
     atmtr=atmtr0[iok_atm]
-    rfn_sky = (rfn)*math.pi*(sky_aperture/2.0)**2 # Photons/s/pix of the OH spectrum ALONE
+    rfn_sky = (rfn)*math.pi*(instrumentconfig['sky_aperture']/2.0)**2 # Photons/s/pix of the OH spectrum ALONE
 
     ####################################################################
 
@@ -413,66 +399,66 @@ def make_simulation(template_data,resolution,wlr,t_aperture,sky_aperture,templat
     fl_tpl=fl_tpl_in[setup_range_tpl]
     wl_tpl=wl_tpl_in[setup_range_tpl]
     # normalising the template source spectrum to the magnitude
-    i = np.where(wl_tpl >= template_wl_norm*1.0e4)[0]
+    i = np.where(wl_tpl >= instrumentconfig['template_wl_norm']*1.0e4)[0]
     templ_fl_ref = fl_tpl[i[0]]
     fl_tpl_normalized_to_one = fl_tpl/templ_fl_ref
     # template photon flux per A in cgs assuming a telescope effective diameter
-    templ_phot_fl = fl_tpl_normalized_to_one*3.63e3*10.0**(-(ab+57.5)/2.5)*math.pi*(t_aperture*1.0e2/2.0)**2/(wl_tpl*6.626e-27)
+    templ_phot_fl = fl_tpl_normalized_to_one*3.63e3*10.0**(-(uservals['ab']+57.5)/2.5)*math.pi*(telescopeconfig['t_aperture']*1.0e2/2.0)**2/(wl_tpl*6.626e-27)
     # template photon flux per PER SPECTRAL PIXEL OF THE TEMPLATE
     templ_phot_fl_pix = templ_phot_fl*template_data['cdelt']#*rdwl
-    npix_y=ypix_fwhm*2.0
+    npix_y=detectorconfig['ypix_fwhm']*2.0
     ####################################################################
 
     ####################################################################
     # Modelling Fibre Injection
     #Obtain Image Quality in corresponding band from seeing provided (seeing defined in zenith at 500nm)
-    fwhm_iq=seeing_to_ImageQ(seeing,cen_wav,airmass_fl)
-    seeing=fwhm_iq
+    fwhm_iq=seeing_to_ImageQ(uservals['seeing'],cen_wav,uservals['airmass_fl'])
+    uservals['seeing']=fwhm_iq
     fib_frac=1.0 # allowing for tuning of fraction loss manually, keep as 1.0 for no additional loss
     #Calculate atmospheric difraction effect
     Lambda=np.arange(0.5,1.9,0.1)
-    atm_diff=get_diffraction(Lambda, airmass_fl, atm_dif_ref)
+    atm_diff=get_diffraction(Lambda, uservals['airmass_fl'], uservals['atm_dif_ref'])
     atm_diff_oh=np.interp(wl_tpl,Lambda*1.0e4,atm_diff)
-    seeing_arr=np.sqrt(seeing**2+atm_diff_oh**2) #Co-added effect of seeing and atm_diff offset.
-    seeing_cor_flux= (1.0-1.0/np.exp( (np.sqrt(math.log(2.0)) * sky_aperture/seeing_arr)**2))*templ_phot_fl_pix
+    seeing_arr=np.sqrt(uservals['seeing']**2+atm_diff_oh**2) #Co-added effect of seeing and atm_diff offset.
+    seeing_cor_flux= (1.0-1.0/np.exp( (np.sqrt(math.log(2.0)) * instrumentconfig['sky_aperture']/seeing_arr)**2))*templ_phot_fl_pix
     sp_conv_src = fib_frac*seeing_cor_flux
     sp_conv_sky=rfn_sky
     ####################################################################
     #resampling to detector pixels, conserving total flux
     #transmission:
-    atminterp_res, fwhm = pyasl.instrBroadGaussFast(atmwl, atmtr, resolution,edgeHandling="firstlast", fullout=True)
+    atminterp_res, fwhm = pyasl.instrBroadGaussFast(atmwl, atmtr, instrumentconfig['resolution'],edgeHandling="firstlast", fullout=True)
     atminterp = np.interp(outputwl,atmwl,atminterp_res)# resample atmospheric transmission to detector pixels
     #
     #source:
-    sp_conv_src_res, fwhm = pyasl.instrBroadGaussFast(wl_tpl, sp_conv_src, resolution,edgeHandling="firstlast", fullout=True)
+    sp_conv_src_res, fwhm = pyasl.instrBroadGaussFast(wl_tpl, sp_conv_src, instrumentconfig['resolution'],edgeHandling="firstlast", fullout=True)
     sp_det_src = np.interp(outputwl,wl_tpl,sp_conv_src_res)
-    inband = np.where((wl_tpl >= outputwl[0]) & (wl_tpl <= outputwl[npix-1]))[0]
+    inband = np.where((wl_tpl >= outputwl[0]) & (wl_tpl <= outputwl[detectorconfig['npix']-1]))[0]
     sp_conv_src_sum=sp_conv_src_res[inband].sum()
     sp_det_src_sum=sp_det_src.sum()
     renorm=sp_conv_src_sum/sp_det_src_sum
     sp_det_src_rn = sp_det_src*renorm
-    if (set_line_profile=='YES'):
+    if (uservals['set_line_profile']=='YES'):
         line_profile_file='IP_HIRES_m68_wave17834.1A.txt'
         print(' ')
         print('Applying line profile convolution')
         print('Extracting line profile from file: ',line_profile_file)
-        sp_det_src_rn=get_line_profile(line_profile_file,outputwl,sp_det_src_rn,disp)
+        sp_det_src_rn=get_line_profile(line_profile_file,outputwl,sp_det_src_rn,detectorconfig['disp'])
     else:
         print('No LSF provided, adopting Gaussian kernel convolution')
         print(' ')
     #
     #sky emission:
-    sp_conv_sky_res, fwhm = pyasl.instrBroadGaussFast(rwl, sp_conv_sky, resolution,edgeHandling="firstlast", fullout=True)
+    sp_conv_sky_res, fwhm = pyasl.instrBroadGaussFast(rwl, sp_conv_sky, instrumentconfig['resolution'],edgeHandling="firstlast", fullout=True)
     sp_det_sky = np.interp(outputwl,rwl,sp_conv_sky_res)
-    inband = np.where((rwl >= outputwl[0]) & (rwl <= outputwl[npix-1]))[0]
+    inband = np.where((rwl >= outputwl[0]) & (rwl <= outputwl[detectorconfig['npix']-1]))[0]
     sp_conv_sky_sum=sp_conv_sky_res[inband].sum()
     sp_det_sky_sum=sp_det_sky.sum()
     renorm_sky=sp_conv_sky_sum/sp_det_sky_sum
     sp_det_sky_rn = sp_det_sky*renorm_sky # for sky only
 
-    if (set_line_profile=='YES'):
+    if (uservals['set_line_profile']=='YES'):
         line_profile_file='IP_HIRES_m68_wave17834.1A.txt'
-        sp_det_sky_rn=get_line_profile(line_profile_file,outputwl,sp_det_sky_rn,disp)
+        sp_det_sky_rn=get_line_profile(line_profile_file,outputwl,sp_det_sky_rn,detectorconfig['disp'])
     ####################################################################
 
     ####################################################################
@@ -483,10 +469,10 @@ def make_simulation(template_data,resolution,wlr,t_aperture,sky_aperture,templat
     EBK=0.00 #36.0*selector #selector matching temperature of the telescope
     ThBK_ins=283.00
     EBK_ins=0.10 #36.0*selector #selector matching temperature of the telescope
-    t_em=1.4*10.0**12*EBK*np.exp(-14388.0/(outputwl/1.0e4*ThBK))/((outputwl/1.0e4)**3/resolution)*disp
-    ins_em=1.4*10.0**12*EBK_ins*np.exp(-14388.0/(outputwl/1.0e4*ThBK_ins))/((outputwl/1.0e4)**3/resolution)*disp
-    NBK_tel=(t_em)*math.pi*(sky_aperture/2.0)**2
-    NBK_ins=(ins_em)*math.pi*(sky_aperture/2.0)**2
+    t_em=1.4*10.0**12*EBK*np.exp(-14388.0/(outputwl/1.0e4*ThBK))/((outputwl/1.0e4)**3/instrumentconfig['resolution'])*detectorconfig['disp']
+    ins_em=1.4*10.0**12*EBK_ins*np.exp(-14388.0/(outputwl/1.0e4*ThBK_ins))/((outputwl/1.0e4)**3/instrumentconfig['resolution'])*detectorconfig['disp']
+    NBK_tel=(t_em)*math.pi*(instrumentconfig['sky_aperture']/2.0)**2
+    NBK_ins=(ins_em)*math.pi*(instrumentconfig['sky_aperture']/2.0)**2
     NBK=NBK_tel+NBK_ins
     #print("Thermal background emissivity Telescope [e-/s]: ",str(round(np.max(NBK_tel*eff),3)))
     #print("Thermal background emissivity Instrument [e-/s]: ",str(round(np.max(NBK_ins*eff),3)))
@@ -501,41 +487,48 @@ def make_simulation(template_data,resolution,wlr,t_aperture,sky_aperture,templat
     #sp_dk = sp_eff+DKsec*npix_y # from total insident flux
 #    sp_dk_sky = sp_eff_sky+DKsec*npix_y #from only sky
     # scale by integration time
-    spec_total = sp_eff*dit
-    spec_2d_peak_intensity=get_PeakIntensity(spec_total,npix_y,DKsec*dit)
+    spec_total = sp_eff*uservals['dit']
+    spec_2d_peak_intensity=get_PeakIntensity(spec_total,npix_y,instrumentconfig['DKsec']*uservals['dit'])
     # the following is for the sky only
-    spec_sky = sp_eff_sky*dit
+    spec_sky = sp_eff_sky*uservals['dit']
     # the following is for the source alone
-    spec_source = sp_eff_src*dit
+    spec_source = sp_eff_src*uservals['dit']
     #calculate total noise
     #####################################################
     # Add stray light contribution
     stray=1.0 # 1% difusse stray light contribution as per latest optical modelling
-    total_stray=spec_sky.sum()*N_dit*500.0/npix**2
+    total_stray=spec_sky.sum()*uservals['N_dit']*500.0/detectorconfig['npix']**2
     spec_stray=total_stray*float(stray)/100.0*npix_y
     #detector NOISE:
-    noisedet=np.sqrt(npix_y*(N_dit*RON**2+DKsec*dit*N_dit))
+    noisedet=np.sqrt(npix_y*(uservals['N_dit']*instrumentconfig['RON']**2+instrumentconfig['DKsec']*uservals['dit']*uservals['N_dit']))
     #background NOISE (including stray):
-    noiseback=np.sqrt(spec_sky*N_dit+spec_stray)
+    noiseback=np.sqrt(spec_sky*uservals['N_dit']+spec_stray)
     #Add residual sky subtraction (optional, if you want then change skyres to percentage):
-    if sky_residual==-1:
-        skyres=0
+    if ((uservals['sky_residual'] >= 0) & (uservals['sky_residual'] <= 100)):
+        skyres=uservals['sky_residual']
     else:
-        skyres=sky_residual
+        if (uservals['sky_residual'] == -1):
+            print('Simulation with sky-subtraction OFF')
+            print(' ')
+            skyres=0
+        else:
+            print(' Not a valid sky residual value (0-100). Adopting 0.00 percent')
+            print(' ')
+            skyres=0
     noiseskyres=float(skyres)/100.0*spec_sky
     #total NOISE: comment out when necessary
-    noisetot=np.sqrt(noiseback**2+noisedet**2+spec_source*N_dit)
-    #noise_sim_withsky=np.sqrt(noiseback**2+noisedet**2+spec_source*N_dit)
+    noisetot=np.sqrt(noiseback**2+noisedet**2+spec_source*uservals['N_dit'])
+    #noise_sim_withsky=np.sqrt(noiseback**2+noisedet**2+spec_source*uservals['N_dit'])
     outnoise=noisetot+noiseskyres
     #outnoise = np.sqrt(outspec+outspec_sky+RON**2*npix_y*2.)
-    sn_cont_all = spec_source/outnoise*N_dit
+    sn_cont_all = spec_source/outnoise*uservals['N_dit']
     sn_cont = np.median(sn_cont_all)
     cent_range=np.where((outputwl >= (cen_wav-wav_range_length*0.1)*10.0) & (outputwl <= (cen_wav+wav_range_length*0.1)*10.0))[0]
     sn_central=sn_cont_all[cent_range].max()
     print("**** S/N at central wavelength = %.2f ****"%sn_central)
     print(" ")
-    count_level=spec_2d_peak_intensity*gain
-    saturated=get_saturation(count_level)
+    count_level=spec_2d_peak_intensity*instrumentconfig['gain']
+    saturated=get_saturation(count_level,instrumentconfig['saturation_level'])
     if saturated:
         print('WARNING!!! Counts above saturation/linearity regime!!!')
     #Get figure with summary of results
@@ -543,48 +536,48 @@ def make_simulation(template_data,resolution,wlr,t_aperture,sky_aperture,templat
     f=plt.figure(figsize=(10,8),dpi=100)
     ax1=f.add_subplot(221)
     ax1.plot(outputwl/1.0e4, sn_cont_all,label='SNR per pixel')
-    ax1.axis([wlr[0], wlr[1], sn_cont_all.min(), sn_cont_all.max()])
+    ax1.axis([instrumentconfig['wlr'][0], instrumentconfig['wlr'][1], sn_cont_all.min(), sn_cont_all.max()])
     ax1.set_xlabel('Wavelength [um]')
     ax1.set_ylabel('SNR (/pix)')
     plt.legend(loc='upper right',prop={'size':8}, numpoints=1)
     #Sky spectrum
     ax1=f.add_subplot(222)
     ax1.plot(outputwl/1.0e4, spec_2d_peak_intensity,label='Peak Intensity')
-    ax1.axis([wlr[0], wlr[1], spec_2d_peak_intensity.min(), spec_2d_peak_intensity.max()])
+    ax1.axis([instrumentconfig['wlr'][0], instrumentconfig['wlr'][1], spec_2d_peak_intensity.min(), spec_2d_peak_intensity.max()])
     if saturated:
-        ax1.plot(outputwl/1.0e4,spec_2d_peak_intensity*0.0+saturation_level/gain,color='red',label='Saturation')
+        ax1.plot(outputwl/1.0e4,spec_2d_peak_intensity*0.0+instrumentconfig['saturation_level']/instrumentconfig['gain'],color='red',label='Saturation')
     plt.legend(loc='upper right',prop={'size':8}, numpoints=1)
     ax1.set_xlabel('Wavelength [um]')
     ax1.set_ylabel('Counts (e-)')
     #atmospheric transmission
     ax1=f.add_subplot(223)
     ax1.plot(outputwl/1.0e4, atminterp,label='Atmospheric transmission')
-    ax1.axis([wlr[0], wlr[1], atminterp.min(), atminterp.max()])
+    ax1.axis([instrumentconfig['wlr'][0], instrumentconfig['wlr'][1], atminterp.min(), atminterp.max()])
     ax1.set_xlabel('Wavelength [um]')
     ax1.set_ylabel('Transmission fraction')
     plt.legend(loc='lower left',prop={'size':8}, numpoints=1)
     #Simulated spectrum
     ax1=f.add_subplot(224)
-    normnoise=np.random.random((npix))*2.0-1.0
+    normnoise=np.random.random((detectorconfig['npix']))*2.0-1.0
     res_noise=normnoise*outnoise
     nores_noise=normnoise*noisetot
     sim_spectrum={}
-    if sky_residual==-1:
-        sim_spectrum['flux']=spec_total*N_dit+nores_noise
+    if uservals['sky_residual']==-1:
+        sim_spectrum['flux']=spec_total*uservals['N_dit']+nores_noise
     else:
-        sim_spectrum['flux']=spec_source*N_dit+res_noise
-    if telluric==1:
+        sim_spectrum['flux']=spec_source*uservals['N_dit']+res_noise
+    if uservals['telluric']==1:
         print('Telluric correction applied (idealistic)')
         print(' ')
         sim_spectrum['flux']=sim_spectrum['flux']/atminterp
     else:
         sim_spectrum['flux']=sim_spectrum['flux']
     sim_spectrum['wave']=outputwl
-    sim_spectrum['cdelt']=disp
+    sim_spectrum['cdelt']=detectorconfig['disp']
     sim_spectrum['crval']=outputwl[0]
     ax1.plot(outputwl/1.0e4, sim_spectrum['flux'],label='Sim spectrum')
-    ax1.plot(outputwl/1.0e4, spec_source*N_dit,label='Object (no noise)',alpha=0.6)
-    ax1.axis([wlr[0], wlr[1], sim_spectrum['flux'].min(), sim_spectrum['flux'].max()])
+    ax1.plot(outputwl/1.0e4, spec_source*uservals['N_dit'],label='Object (no noise)',alpha=0.6)
+    ax1.axis([instrumentconfig['wlr'][0], instrumentconfig['wlr'][1], sim_spectrum['flux'].min(), sim_spectrum['flux'].max()])
     ax1.set_xlabel('Wavelength [um]')
     ax1.set_ylabel('Counts (e-)')
     plt.legend(loc='upper right',prop={'size':8}, numpoints=1)
@@ -594,12 +587,13 @@ def make_simulation(template_data,resolution,wlr,t_aperture,sky_aperture,templat
     return sim_spectrum
 
 if __name__ == "__main__":
-    print("Reading FITS template spectrum: %s " %template)
-    t_aperture=set_telescope(telescope)
-    ypix_fwhm=set_number_pixels_y(t_aperture,sky_aperture)
-    npix=set_number_pixels_x(resolution,spec_sampling,w_range)
-    template_data=get_template(template)
-    sim_spectrum=make_simulation(template_data,resolution,w_range,t_aperture,sky_aperture,template_wl_norm,ab,airmass,npix,Instrument,ypix_fwhm,dit,eff_opt,seeing,atm_dif_ref)
-    cdelt1=get_disp(resolution,spec_sampling,w_range)
-    create_fits(sim_spectrum, outfits,template_data,gain)
-    print('Output fits file created: %s'%outfits)
+    uservals=get_input()
+    if uservals['instrument']=='MOONS':
+        instrumentconfig=setup_moons(uservals)
+    telescopeconfig=set_telescope(uservals)
+    detectorconfig=set_detector(telescopeconfig,uservals,instrumentconfig)
+    template_data=get_template(uservals)
+    sim_spectrum=make_simulation(template_data, uservals, detectorconfig, telescopeconfig, instrumentconfig) # resolution,wlr,t_aperture,sky_aperture,template_wl_norm,ab,airmass,npix,Instrument,ypix_fwhm,dit,eff_opt,seeing,atm_dif_ref)
+    #cdelt1=detectorconfig['dist']#get_disp(resolution,spec_sampling,wlr)
+    create_fits(sim_spectrum, uservals,template_data,instrumentconfig)
+    print('Output fits file created: %s'%uservals['outfits'])
