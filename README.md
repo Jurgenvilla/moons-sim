@@ -7,7 +7,7 @@ These instructions will get you a copy of the simulator up and running on your l
 
 ### Prerequisites
 
-The following Python packages need to be installed for the simulator to run. This can be done for example using pip:
+The simulator code is written in Python 3. The following dependencies need to be installed for the simulator to run properly. This can be done, for example, using pip:
 
 ```
 pip install PyAstronomy numpy astropy sys scipy matplotlib math warnings
