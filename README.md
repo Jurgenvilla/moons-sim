@@ -3,7 +3,7 @@ Produces a 1D (optimally extracted) MOONS spectrum for a set of observing condit
 
 ## Getting Started
 
-These instructions will get you a copy of the project up and running on your local machine.
+These instructions will get you a copy of the simulator up and running on your local machine.
 
 ### Prerequisites
 
@@ -13,17 +13,15 @@ The following Python packages need to be installed for the simulator to run. Thi
 pip install PyAstronomy numpy astropy sys scipy matplotlib math warnings
 ```
 
-### Installing
+## Running the simulator
 
-Download this package. This includes all the necessary files and subdirectories needed to run the simulator:
+This includes all the necessary files and subdirectories needed to run the simulator:
 
 ```
 moons_sim.py 
 Inst_setup/ which includes all the throughput information for Instrument, detectors, and telescope.
 Skymodel/ which inscludes all the ESO sky model templates for different airmass values at average Paranal conditions.
 ```
-
-## Running the simulator
 
 The simulator can be run from the command line:
 
@@ -51,16 +49,16 @@ Input arguments must be provided in the following specific order:
 
 ### Example execution
 
-To run a LR H-band simulation of an observation of 3600sec (in 200sx18 DITxNDIT) at 0.8 seeing and airmass 1.2, correcting atmospheric difraction at 1.5um, starting from a template named stellar_template.fits, using the ESO sky model, applying sky subtraction with 2% sky residual, and telluric correction, to produce output file named output_spec.fits
+To run a LR H-band simulation of an observation of 3600sec (in 200sx18 DITxNDIT) at 0.8 seeing and airmass 1.2, correcting atmospheric difraction at 1.5um, starting from the example template in Example/input_stellar_template.fits, using the ESO sky model, applying sky subtraction with 2% sky residual, and telluric correction, to produce output file named output_spec.fits
 
 ```
-moons_sim stellar_template.fits output_spec.fits LR H 18 200 18 0.8 1.2 1.5 2.0 eso_skycalc 1
+moons_sim Example/input_stellar_template.fits output_spec.fits LR H 18 200 18 0.8 1.2 1.5 2.0 eso_skycalc 1
 ```
 
 Same simulation as above, without applying sky subtraction or telluric correction:
 
 ```
-moons_sim stellar_template.fits output_spec.fits LR H 18 200 18 0.8 1.2 1.5 -1 eso_skycalc -1
+moons_sim Example/input_stellar_template.fits output_spec.fits LR H 18 200 18 0.8 1.2 1.5 -1 eso_skycalc -1
 ```
 
 ## Authors
