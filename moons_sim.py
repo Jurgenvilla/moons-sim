@@ -462,9 +462,9 @@ def make_simulation(template_data, uservals, detectorconfig, telescopeconfig,ins
     ####################################################################
 
     ####################################################################
-    #Modelling overall efficiency (not currently enabled!)
+    #Modelling overall efficiency
     eff=get_efficiency(outputwl,min_wl,max_wl)
-    #Calculate telescope and instrument emissivity (not critical for H band)
+    #Calculate telescope and instrument emissivity (not enabled as is not critical for H band)
     ThBK=283.00
     EBK=0.00 #36.0*selector #selector matching temperature of the telescope
     ThBK_ins=283.00
