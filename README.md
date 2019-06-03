@@ -21,6 +21,7 @@ This includes all the necessary files and subdirectories needed to run the simul
 moons_sim.py 
 Inst_setup/ which includes all the throughput information for Instrument, detectors, and telescope.
 Skymodel/ which inscludes all the ESO sky model templates for different airmass values at average Paranal conditions.
+Example/ containing a FITS file with an example input spectrum to run the simulator (see command line example below).
 ```
 
 The simulator can be run from the command line:
