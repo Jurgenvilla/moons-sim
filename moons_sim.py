@@ -167,6 +167,7 @@ def get_template(uservals):
     crval=spec_header['crval1']
     cdelt=spec_header['cdelt1']
     tunit_wav=spec_header['TUNIT1']
+    respow_tpl=spec_header['R']
     template_data={}
     template_data['header']=spec_header
     temp_pix_array=np.arange(0,naxis,1)
@@ -178,6 +179,7 @@ def get_template(uservals):
         template_data['wave']=wl_tpl # in Angstroms
         template_data['cdelt']=cdelt
         template_data['flux']=fl_tpl # in ergs/s/cm2/A
+        template_data['respow']=respow_tpl
         unitsok=1
     if (tunit_wav=='nm'): # specific for templates from Jorge. To be removed later on....
         z_val=1.5
@@ -186,9 +188,10 @@ def get_template(uservals):
         template_data['wave']=wl_tpl*(1.+float(z_val)) #in A
         template_data['cdelt']=cdelt*10.0 # in A
         template_data['flux']=fl_tpl # in ergs/s/cm2/A
+        template_data['respow']=respow_tpl
         unitsok=1
     if (unitsok==0):
-        print('ERROR: Wavelength unit expect to be Angstroms or nm')
+        print('ERROR: Wavelength unit expect to be Angstroms')
         exit()
     return template_data
 
@@ -276,10 +279,10 @@ def get_sky_model(sky_template,airmass_fl):
             print("FITS file not found or not valid input file")
             exit()
         spec_hdu=fits.open(str(skyfile))
-        spec=spec_hdu[1].data
-        trans_spec=spec_hdu[2].data
-        spec_header=spec_hdu[1].header
-        trans_header=spec_hdu[2].header
+        spec=spec_hdu[0].data
+        trans_spec=spec_hdu[1].data
+        spec_header=spec_hdu[0].header
+        trans_header=spec_hdu[1].header
         naxis_sf=spec_header['naxis1']
         crval_sf=spec_header['crval1']
         cdelt_sf=spec_header['cdelt1']
@@ -368,6 +371,9 @@ def make_simulation(template_data, uservals, detectorconfig, telescopeconfig,ins
     wav_range_length=(instrumentconfig['wlr'][1]-instrumentconfig['wlr'][0])*1.0e3
     pix_arr=np.arange(0,detectorconfig['npix'],1)
     outputwl = instrumentconfig['wlr'][0]*1.0e4+pix_arr*detectorconfig['disp']
+    #FWHM for kernel
+    fwhm_kernel=np.sqrt(cen_wav/instrumentconfig['resolution']**2-cen_wav/template_data['respow']**2)
+    respow_kernel=cen_wav/fwhm_kernel
     ####################################################################
 
     ####################################################################
@@ -426,11 +432,11 @@ def make_simulation(template_data, uservals, detectorconfig, telescopeconfig,ins
     ####################################################################
     #resampling to detector pixels, conserving total flux
     #transmission:
-    atminterp_res, fwhm = pyasl.instrBroadGaussFast(atmwl, atmtr, instrumentconfig['resolution'],edgeHandling="firstlast", fullout=True)
+    atminterp_res, fwhm = pyasl.instrBroadGaussFast(atmwl, atmtr, respow_kernel,edgeHandling="firstlast", fullout=True)
     atminterp = np.interp(outputwl,atmwl,atminterp_res)# resample atmospheric transmission to detector pixels
     #
     #source:
-    sp_conv_src_res, fwhm = pyasl.instrBroadGaussFast(wl_tpl, sp_conv_src, instrumentconfig['resolution'],edgeHandling="firstlast", fullout=True)
+    sp_conv_src_res, fwhm = pyasl.instrBroadGaussFast(wl_tpl, sp_conv_src, respow_kernel ,edgeHandling="firstlast", fullout=True)
     sp_det_src = np.interp(outputwl,wl_tpl,sp_conv_src_res)
     inband = np.where((wl_tpl >= outputwl[0]) & (wl_tpl <= outputwl[detectorconfig['npix']-1]))[0]
     sp_conv_src_sum=sp_conv_src_res[inband].sum()
@@ -448,7 +454,7 @@ def make_simulation(template_data, uservals, detectorconfig, telescopeconfig,ins
         print(' ')
     #
     #sky emission:
-    sp_conv_sky_res, fwhm = pyasl.instrBroadGaussFast(rwl, sp_conv_sky, instrumentconfig['resolution'],edgeHandling="firstlast", fullout=True)
+    sp_conv_sky_res, fwhm = pyasl.instrBroadGaussFast(rwl, sp_conv_sky, respow_kernel,edgeHandling="firstlast", fullout=True)
     sp_det_sky = np.interp(outputwl,rwl,sp_conv_sky_res)
     inband = np.where((rwl >= outputwl[0]) & (rwl <= outputwl[detectorconfig['npix']-1]))[0]
     sp_conv_sky_sum=sp_conv_sky_res[inband].sum()
@@ -462,9 +468,9 @@ def make_simulation(template_data, uservals, detectorconfig, telescopeconfig,ins
     ####################################################################
 
     ####################################################################
-    #Modelling overall efficiency
+    #Modelling overall efficiency (not currently enabled!)
     eff=get_efficiency(outputwl,min_wl,max_wl)
-    #Calculate telescope and instrument emissivity (not enabled as is not critical for H band)
+    #Calculate telescope and instrument emissivity (not critical for H band)
     ThBK=283.00
     EBK=0.00 #36.0*selector #selector matching temperature of the telescope
     ThBK_ins=283.00
