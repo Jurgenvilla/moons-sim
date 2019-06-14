@@ -62,6 +62,55 @@ Same simulation as above, without applying sky subtraction or telluric correctio
 moons_sim Example/input_stellar_template.fits output_spec.fits LR H 18 200 18 0.8 1.2 1.5 -1 eso_skycalc -1
 ```
 
+## Input templates
+
+The simulator requires input templates for the science source input (and for the sky, when user-defined) in specific units and expects the corresponding header keywords.
+
+### Input Source templates
+
+The package contains an example of the input source spectrum in the Example/ folder. 
+
+```
+Single extension fits file with
+hdu[0] = source flux in erg/s/cm2/A
+```
+
+The mandatory header keywords (and an example value) are:
+```
+hdu.header['CODE'] = ('Cigale', 'Simulation code')
+hdu.header['MTYPE'] = ('Galaxy', 'Star, Galaxy, or Quasar')
+hdu.header['MNAME'] = ('M11_NoConvolved_model', 'Model name')
+hdu.header['CRVAL'] = CRVAL
+hdu.header['CRDEL'] = CRDEL
+hdu.header['CRPIX'] = 1
+hdu.header['R'] = 20000 Resolving power 
+hdu.header['Sampling'] = 2. #Pixels per element of resolution
+hdu.header['TUNIT1'] = 'A'
+hdu.header['TUNIT2'] = 'erg/s/cm2/A'
+```
+
+### Input Sky template (OPTIONAL)
+
+If the sky spectrum is provided by the user (so the input argument is different from "ESO_skycalc" and corresponds to the path to an user defined fits-file), then this file should be:
+
+```
+Two-extension fits file with:
+hdu[0]=SKY emission in erg/s/cm2/A/arcsec2
+hdu[1]=Fraction of atmopheric transmission
+```
+
+The mandatory header keywords (and an example value) in that FITS-file are:
+```
+hdu.header['CRVAL'] = CRVAL
+hdu.header['CRDEL'] = CRDEL
+hdu.header['CRPIX'] = 1
+hdu.header['R'] = 100000 Resolving power 
+hdu.header['Sampling'] = 2. #Pixels per element of resolution
+hdu.header['TUNIT1'] = 'A'
+hdu.header['TUNIT2'] = 'erg/s/cm2/A/'
+```
+
+
 ## Authors
 
 * **Oscar A. Gonzalez** - *UKATC* -
