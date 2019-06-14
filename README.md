@@ -27,7 +27,7 @@ Example/ containing a FITS file with an example input spectrum to run the simula
 The simulator can be run from the command line:
 
 ```
-python moons_sim.py arg1 arg2 arg3 ...
+> python moons_sim.py arg1 arg2 arg3 ...
 ```
 
 Input arguments must be provided in the following specific order:
