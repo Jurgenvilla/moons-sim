@@ -81,7 +81,7 @@ hdu.header['CODE'] = ('Cigale', 'Simulation code')
 hdu.header['MTYPE'] = ('Galaxy', 'Star, Galaxy, or Quasar')
 hdu.header['MNAME'] = ('M11_NoConvolved_model', 'Model name')
 hdu.header['CRVAL'] = CRVAL
-hdu.header['CRDEL'] = CRDEL
+hdu.header['CDELT'] = CRDEL
 hdu.header['CRPIX'] = 1
 hdu.header['R'] = 20000 Resolving power 
 hdu.header['Sampling'] = 2. #Pixels per element of resolution
@@ -89,7 +89,7 @@ hdu.header['TUNIT1'] = 'A'
 hdu.header['TUNIT2'] = 'erg/s/cm2/A'
 ```
 
-### Input Sky template (OPTIONAL)
+### Input Sky model template (OPTIONAL)
 
 If the sky spectrum is provided by the user (so the input argument is different from "ESO_skycalc" and corresponds to the path to an user defined fits-file), then this file should be:
 
@@ -97,17 +97,16 @@ If the sky spectrum is provided by the user (so the input argument is different 
 Two-extension fits file with:
 hdu[0]=SKY emission in erg/s/cm2/A/arcsec2
 hdu[1]=Fraction of atmopheric transmission
+Constant delta_lambda = CDELT (with sufficient resolution across the setup wavelength range!) 
 ```
 
 The mandatory header keywords (and an example value) in that FITS-file are:
 ```
 hdu.header['CRVAL'] = CRVAL
-hdu.header['CRDEL'] = CRDEL
+hdu.header['CDELT'] = CRDEL
 hdu.header['CRPIX'] = 1
-hdu.header['R'] = 100000 Resolving power 
-hdu.header['Sampling'] = 2. #Pixels per element of resolution
 hdu.header['TUNIT1'] = 'A'
-hdu.header['TUNIT2'] = 'erg/s/cm2/A/'
+hdu.header['TUNIT2'] = 'erg/s/cm2/A/arcsec2'
 ```
 
 
