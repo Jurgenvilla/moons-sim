@@ -53,13 +53,13 @@ Input arguments must be provided in the following specific order:
 To run a LR H-band simulation of an observation of 3600sec (in 200sx18 DITxNDIT) at 0.8 seeing and airmass 1.2, correcting atmospheric difraction at 1.5um, starting from the example template in Example/input_stellar_template.fits, using the ESO sky model, applying sky subtraction with 2% sky residual, and telluric correction, to produce output file named output_spec.fits
 
 ```
-moons_sim Example/input_stellar_template.fits output_spec.fits LR H 18 200 18 0.8 1.2 1.5 2.0 eso_skycalc 1
+> python moons_sim.py Example/input_stellar_template.fits output_spec.fits LR H 18 200 18 0.8 1.2 1.5 2.0 eso_skycalc 1
 ```
 
 Same simulation as above, without applying sky subtraction or telluric correction:
 
 ```
-moons_sim Example/input_stellar_template.fits output_spec.fits LR H 18 200 18 0.8 1.2 1.5 -1 eso_skycalc -1
+> python moons_sim.py Example/input_stellar_template.fits output_spec.fits LR H 18 200 18 0.8 1.2 1.5 -1 eso_skycalc -1
 ```
 
 ## Input templates
