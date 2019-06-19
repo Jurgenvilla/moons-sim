@@ -1,4 +1,4 @@
-# 1D Spectral Simulator for VLT-MOONS
+# 1D Spectral Simulator for VLT-MOONS (in development)
 Produces a 1D (optimally extracted) MOONS spectrum for a set of observing conditions, starting from a provided template. The sky is modeled using the ESO skycalc model or the user can provide the Sky template. The code produces a SNR calculation and creates a FITS file as output with the resulting simulated spectrum (sky corrected or not). An output plot is also produced with a summary of the simulation performance.
 
 ## Getting Started
