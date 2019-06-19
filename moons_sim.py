@@ -46,7 +46,7 @@ def setup_moons(uservals):
             instrumentconfig['resolution']=19400.00
             print("Setting wavelength range to ", str(instrumentconfig['wlr']))
             instrumentconfig['template_wl_norm']=1.630
-            QE_file='Inst_setup/QE_4RG.txt'
+            QE_file='Inst_setup/QE_nearIR.txt'
             instrumentconfig['QE_wav'], instrumentconfig['QE_eff']  = np.loadtxt(QE_file, unpack = True)
         if ( uservals['band'] == "YJ" ) :
             print("Adopting moons mode: ", uservals['moons_mode'], uservals['band'])
@@ -60,7 +60,7 @@ def setup_moons(uservals):
             instrumentconfig['resolution']=4000.00
             print("Setting wavelength range to ", str(instrumentconfig['wlr']))
             instrumentconfig['template_wl_norm']=1.22
-            QE_file='Inst_setup/QE_4RG.txt'
+            QE_file='Inst_setup/QE_nearIR.txt'
             instrumentconfig['QE_wav'], instrumentconfig['QE_eff']  = np.loadtxt(QE_file, unpack = True)
         if ( uservals['band'] == "RI" ) :
             print("Adopting moons mode: ", uservals['moons_mode'], uservals['band'])
@@ -74,7 +74,7 @@ def setup_moons(uservals):
             print("Setting wavelength range to ", str(instrumentconfig['wlr']))
             instrumentconfig['template_wl_norm']=0.797
             #setting detector_model_RI to 'LBNL':
-            QE_file='Inst_setup/QE_LBNL.txt'
+            QE_file='Inst_setup/QE_RI.txt'
             instrumentconfig['QE_wav'], instrumentconfig['QE_eff']  = np.loadtxt(QE_file, unpack = True)
             instrumentconfig['RON']=3.0
     if (uservals['moons_mode'] == "LR"):
@@ -90,7 +90,7 @@ def setup_moons(uservals):
             instrumentconfig['resolution']=6400.00
             print("Setting wavelength range to ", str(instrumentconfig['wlr']))
             instrumentconfig['template_wl_norm']=1.63
-            QE_file='Inst_setup/QE_4RG.txt'
+            QE_file='Inst_setup/QE_nearIR.txt'
             instrumentconfig['QE_wav'], instrumentconfig['QE_eff']  = np.loadtxt(QE_file, unpack = True)
         if ( uservals['band'] == "YJ" ) :
             print("Adopting moons mode: ", uservals['moons_mode'], uservals['band'])
@@ -104,7 +104,7 @@ def setup_moons(uservals):
             instrumentconfig['resolution']=4500.00
             print("Setting wavelength range to ", str(instrumentconfig['wlr']))
             instrumentconfig['template_wl_norm']=1.22
-            QE_file='Inst_setup/QE_4RG.txt'
+            QE_file='Inst_setup/QE_nearIR.txt'
             instrumentconfig['QE_wav'], instrumentconfig['QE_eff']  = np.loadtxt(QE_file, unpack = True)
         if ( uservals['band'] == "RI" ) :
             print("Adopting moons mode: ", uservals['moons_mode'], uservals['band'])
@@ -119,7 +119,7 @@ def setup_moons(uservals):
             print("Setting wavelength range to ", str(instrumentconfig['wlr']))
             instrumentconfig['template_wl_norm']=0.797
             #setting detector_model_RI to 'LBNL':
-            QE_file='Inst_setup/QE_LBNL.txt'
+            QE_file='Inst_setup/QE_RI.txt'
             instrumentconfig['QE_wav'], instrumentconfig['QE_eff']  = np.loadtxt(QE_file, unpack = True)
     instrumentconfig['DKsec'] = DK/3600.
     instrumentconfig['sky_aperture']=1.1
@@ -372,7 +372,7 @@ def make_simulation(template_data, uservals, detectorconfig, telescopeconfig,ins
     pix_arr=np.arange(0,detectorconfig['npix'],1)
     outputwl = instrumentconfig['wlr'][0]*1.0e4+pix_arr*detectorconfig['disp']
     #FWHM for kernel
-    fwhm_kernel=np.sqrt(cen_wav/instrumentconfig['resolution']**2-cen_wav/template_data['respow']**2)
+    fwhm_kernel=np.sqrt((cen_wav/instrumentconfig['resolution'])**2-(cen_wav/template_data['respow'])**2)
     respow_kernel=cen_wav/fwhm_kernel
     ####################################################################
 
